@@ -1,8 +1,7 @@
 import streamlit as st
-from ollama import chat
-from ollama import pull
-from ollama import ChatResponse
-from ollama import ResponseError
+import time
+from ollama import chat, pull
+from ollama import ChatResponse, ResponseError
 
 MODEL = "deepseek-r1:1.5b"
 
@@ -13,7 +12,7 @@ except ResponseError as e:
     if e.status_code == 404:
         pull(MODEL)
 
-def chat_response(prompt: str) -> str:
+def chat_response(prompt: str):
     response: ChatResponse = chat(
         model=MODEL,
         messages=[
@@ -27,4 +26,10 @@ def chat_response(prompt: str) -> str:
     clean_response = response.message.content.replace("<think>", "")
     clean_response = clean_response.replace("</think>", "")
     
-    return clean_response
+    for line in clean_response.splitlines(keepends=True):
+        for word in line.split():
+            yield word + " "
+            time.sleep(0.05)
+        # Yield a newline character to preserve the original formatting
+        if line.endswith("\n"):
+            yield "\n"
